@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
-import Card from "../components/Card";
+
+import Notificacao from "../components/Notificacao";
+import Confirmacao from "../components/Confirmacao";
 
 function Cursos() {
   const [cursos, setCursos] = useState([]);
@@ -12,8 +14,23 @@ function Cursos() {
   const [mensagem, setMensagem] = useState("");
   const [editandoId, setEditandoId] = useState(null);
 
+  const [notificacao, setNotificacao] = useState(null);
+  const [confirmacao, setConfirmacao] = useState(null);
+
+  function mostrarNotificacao(tipo, mensagem) {
+    setNotificacao({
+      tipo,
+      mensagem,
+    });
+
+    setTimeout(() => {
+      setNotificacao(null);
+    }, 4000);
+  }
+
   function carregarCursos() {
     setCarregando(true);
+    setErro("");
 
     fetch("http://localhost:3000/cursos")
       .then((resposta) => {
@@ -30,6 +47,11 @@ function Cursos() {
       .catch(() => {
         setErro("Não foi possível carregar os cursos.");
         setCarregando(false);
+
+        mostrarNotificacao(
+          "error",
+          "Não foi possível carregar os cursos."
+        );
       });
   }
 
@@ -71,7 +93,8 @@ function Cursos() {
         );
       }
 
-      setMensagem(
+      mostrarNotificacao(
+        "success",
         editandoId
           ? "Curso atualizado com sucesso!"
           : "Curso cadastrado com sucesso!"
@@ -81,6 +104,11 @@ function Cursos() {
       carregarCursos();
     } catch (erro) {
       setErro(erro.message);
+
+      mostrarNotificacao(
+        "error",
+        erro.message
+      );
     }
   }
 
@@ -97,16 +125,22 @@ function Cursos() {
     setEditandoId(null);
     setNome("");
     setDescricao("");
+
+    setMensagem("");
+    setErro("");
   }
 
-  async function excluirCurso(id) {
-    const confirmar = window.confirm(
-      "Tem certeza que deseja excluir este curso?"
-    );
+  function excluirCurso(id) {
+    setConfirmacao({
+      titulo: "Excluir curso",
+      mensagem:
+        "Tem certeza que deseja excluir este curso? Essa ação não poderá ser desfeita.",
+      acao: () => confirmarExclusaoCurso(id),
+    });
+  }
 
-    if (!confirmar) {
-      return;
-    }
+  async function confirmarExclusaoCurso(id) {
+    setConfirmacao(null);
 
     setMensagem("");
     setErro("");
@@ -127,7 +161,10 @@ function Cursos() {
         );
       }
 
-      setMensagem("Curso excluído com sucesso!");
+      mostrarNotificacao(
+        "success",
+        "Curso excluído com sucesso!"
+      );
 
       if (editandoId === id) {
         limparFormulario();
@@ -136,13 +173,35 @@ function Cursos() {
       carregarCursos();
     } catch (erro) {
       setErro(erro.message);
+
+      mostrarNotificacao(
+        "error",
+        erro.message
+      );
     }
   }
 
   return (
     <main className="container">
+
+      <Notificacao
+        notificacao={notificacao}
+        fechar={() => setNotificacao(null)}
+      />
+
+      {confirmacao && (
+        <Confirmacao
+          titulo={confirmacao.titulo}
+          mensagem={confirmacao.mensagem}
+          confirmar={confirmacao.acao}
+          cancelar={() => setConfirmacao(null)}
+        />
+      )}
+
       <section className="page-header">
-        <span className="badge">Formação acadêmica</span>
+        <span className="badge">
+          Formação acadêmica
+        </span>
 
         <h2>Cursos</h2>
 
@@ -152,15 +211,20 @@ function Cursos() {
         </p>
       </section>
 
-      <section className="contact-content">
-        <div className="contact-card">
+      <section className="contact-content crud-content">
+        <div className="contact-card crud-card">
+
           <h3>
             {editandoId
               ? "✏️ Editar curso"
               : "🎓 Cadastrar curso"}
           </h3>
 
-          <form onSubmit={salvarCurso}>
+          <form
+            onSubmit={salvarCurso}
+            className="crud-form"
+          >
+
             <input
               type="text"
               placeholder="Nome do curso"
@@ -181,60 +245,99 @@ function Cursos() {
               required
             />
 
-            <button type="submit" className="btn">
-              {editandoId
-                ? "Salvar alterações"
-                : "Cadastrar curso"}
-            </button>
+            <div className="crud-form-actions">
 
-            {editandoId && (
               <button
-                type="button"
-                className="btn btn-secondary"
-                onClick={limparFormulario}
+                type="submit"
+                className="btn"
               >
-                Cancelar
+                {editandoId
+                  ? "Salvar alterações"
+                  : "Cadastrar curso"}
               </button>
-            )}
+
+              {editandoId && (
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  onClick={limparFormulario}
+                >
+                  Cancelar
+                </button>
+              )}
+
+            </div>
+
           </form>
 
-          {mensagem && <p>{mensagem}</p>}
+          {mensagem && (
+            <p>{mensagem}</p>
+          )}
 
-          {erro && <p>{erro}</p>}
+          {erro && (
+            <p>{erro}</p>
+          )}
+
         </div>
       </section>
 
-      <section className="cards">
-        {carregando && <p>Carregando cursos...</p>}
+      <section className="cards crud-grid">
+
+        {carregando && (
+          <p>
+            Carregando cursos...
+          </p>
+        )}
 
         {!carregando &&
           !erro &&
           cursos.map((curso) => (
-            <div className="card" key={curso.id}>
-              <div className="card-icon">◆</div>
 
-              <h3>{curso.nome}</h3>
+            <div
+              className="card"
+              key={curso.id}
+            >
 
-              <p>{curso.descricao}</p>
+              <div className="card-icon">
+                ◆
+              </div>
 
-              <div className="hero-buttons">
+              <h3>
+                {curso.nome}
+              </h3>
+
+              <p>
+                {curso.descricao}
+              </p>
+
+              <div className="crud-card-actions">
+
                 <button
                   className="btn"
-                  onClick={() => editarCurso(curso)}
+                  onClick={() =>
+                    editarCurso(curso)
+                  }
                 >
                   ✏️ Editar
                 </button>
 
                 <button
                   className="btn btn-secondary"
-                  onClick={() => excluirCurso(curso.id)}
+                  onClick={() =>
+                    excluirCurso(curso.id)
+                  }
                 >
                   🗑️ Excluir
                 </button>
+
               </div>
+
             </div>
+
           ))}
+
       </section>
+
     </main>
   );
 }
