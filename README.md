@@ -333,13 +333,3 @@ GitHub.
 📄 Licença
 
 Este projeto foi desenvolvido para fins acadêmicos e educacionais.
-
-
-Esse formato fica bem mais parecido com o README do **back-end**: apresenta o projeto, objetivo, estrutura, tecnologias, API, CRUD, execução, Git/GitHub e a integração entre as duas partes.
-
-E como o `README.md` atual já está no seu repositório, depois de substituir o conteúdo, fazemos só:
-
-```bash
-git add README.md
-git commit -m "docs: atualiza README do front-end"
-git push
