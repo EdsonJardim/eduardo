@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import Notificacao from "../components/Notificacao";
 import Confirmacao from "../components/Confirmacao";
@@ -17,6 +17,8 @@ function Alunos() {
 
   const [notificacao, setNotificacao] = useState(null);
   const [confirmacao, setConfirmacao] = useState(null);
+
+  const formularioRef = useRef(null);
 
   function mostrarNotificacao(tipo, mensagem) {
     setNotificacao({
@@ -122,6 +124,13 @@ function Alunos() {
 
     setMensagem("");
     setErro("");
+
+    setTimeout(() => {
+      formularioRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
   }
 
   function limparFormulario() {
@@ -216,7 +225,10 @@ function Alunos() {
       </section>
 
       <section className="contact-content crud-content">
-        <div className="contact-card crud-card">
+        <div
+          ref={formularioRef}
+          className="contact-card crud-card"
+        >
 
           <h3>
             {editandoId
