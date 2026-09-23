@@ -657,6 +657,10 @@ footer small {
   cursor: pointer;
 }
 
+html::-webkit-scrollbar {
+  display: none;
+}
+
 @keyframes modal-in {
   from {
     opacity: 0;
